@@ -17,7 +17,7 @@ const Authors = () => {
             <th>born</th>
             <th>books</th>
           </tr>
-          {result.data && result.data.allAuthors.toSorted(authorsAlphabetically).map((a) => (
+          {result.data.allAuthors.toSorted(authorsAlphabetically).map((a) => (
             <tr key={a.name}>
               <td>{a.name}</td>
               <td>{a.born}</td>
