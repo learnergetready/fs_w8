@@ -11,7 +11,7 @@ const compareByLastName = (nameA, nameB) => {
     return 0
 }
 //author-table
-export const authorsAlphabetically = (a, b) => compareByLastName(a.name, b.name)
+export const byAuthor = (a, b) => compareByLastName(a.name, b.name)
 
 //books-table
 export const byAuthorbyYear = (a, b) => {
