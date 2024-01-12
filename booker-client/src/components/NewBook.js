@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useMutation } from '@apollo/client'
+import { ADD_BOOK, ALL_AUTHORS, ALL_BOOKS } from '../queries'
 
 const NewBook = () => {
   const [title, setTitle] = useState('')
@@ -6,11 +8,27 @@ const NewBook = () => {
   const [published, setPublished] = useState('')
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
+  const [errorMessage, setErrorMessage] = useState(null)
+
+  const notify = (message) => {
+    setErrorMessage(message)
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 7000);
+  }
+
+  const [addBook] = useMutation(ADD_BOOK,{
+      refetchQueries: [{query: ALL_AUTHORS}, {query: ALL_BOOKS}],
+      onError: (error) => {
+        const messages = error.graphQLErrors.map(e => e.message).join('\n')
+        notify(messages)
+      }
+  })
 
   const submit = async (event) => {
     event.preventDefault()
 
-    console.log('add book...')
+    await addBook({variables: {title, author, published: parseInt(published), genres}})
 
     setTitle('')
     setPublished('')
@@ -24,8 +42,11 @@ const NewBook = () => {
     setGenre('')
   }
 
+  
+
   return (
     <div>
+      <Notify errorMessage={errorMessage} />
       <form onSubmit={submit}>
         <div>
           title
@@ -61,6 +82,17 @@ const NewBook = () => {
         <div>genres: {genres.join(' ')}</div>
         <button type="submit">create book</button>
       </form>
+    </div>
+  )
+}
+
+const Notify = ({errorMessage}) => {
+  if (!errorMessage) {
+    return null
+  }
+  return (
+    <div style={{color: "red"}}>
+      {errorMessage}
     </div>
   )
 }
