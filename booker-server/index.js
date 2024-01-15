@@ -4,6 +4,7 @@ const { startStandaloneServer } = require("@apollo/server/standalone")
 const mongoose = require("mongoose")
 const Author = require("./models/author")
 const Book = require("./models/book")
+const { GraphQLError } = require("graphql")
 
 mongoose.set("strictQuery", false)
 
@@ -96,26 +97,56 @@ const resolvers = {
     },
     Mutation: {
         addBook: async (root, args) => {
-            const foundAuthor = await Author.findOne({ name: args.author })
-            if (!foundAuthor) {
-                const author = new Author({ name: args.author })
-                await author.save()
-                const book = new Book({ args, author })
+            try {
+                const foundAuthor = await Author.findOne({ name: args.author })
+                if (!foundAuthor) {
+                    const author = new Author({ name: args.author })
+                    await author.save()
+                    const book = new Book({ args, author })
+                    await book.save()
+                    return book
+                }
+                const book = new Book({ ...args, author: foundAuthor })
                 await book.save()
                 return book
+            } catch (error) {
+                let errorMessages = ""
+                if (error) {
+                    if (error.name === "ValidationError") {
+                        Object.values(error.errors).map(
+                            (val) => (errorMessages += val.message + " "),
+                        )
+                        throw new GraphQLError(errorMessages, {
+                            extensions: { code: "VALIDATION_ERROR" },
+                        })
+                    }
+                }
+                throw new GraphQLError("Some unhandeled error occured")
             }
-            const book = new Book({ ...args, author: foundAuthor })
-            await book.save()
-            return book
         },
         editAuthor: async (root, args) => {
-            const foundAuthor = await Author.findOne({ name: args.name })
-            if (!foundAuthor) {
-                return null
+            try {
+                const foundAuthor = await Author.findOne({ name: args.name })
+                if (!foundAuthor) {
+                    return null
+                }
+                foundAuthor.born = args.setBornTo
+                await foundAuthor.save()
+                return foundAuthor
+            } catch (error) {
+                let errorMessages = ""
+                if (error) {
+                    if (error.name === "ValidationError") {
+                        Object.values(error.errors).map(
+                            (val) => (errorMessages += val.message + " "),
+                        )
+                        throw new GraphQLError(errorMessages, {
+                            extensions: { code: "VALIDATION_ERROR" },
+                        })
+                    }
+                }
+                throw new GraphQLError("Some unhandeled error occured")
             }
-            foundAuthor.born = args.setBornTo
-            await foundAuthor.save()
-            return foundAuthor
         },
     },
 }
