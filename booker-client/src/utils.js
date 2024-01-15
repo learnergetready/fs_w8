@@ -15,12 +15,10 @@ export const byAuthor = (a, b) => compareByLastName(a.name, b.name)
 
 //books-table
 export const byAuthorbyYear = (a, b) => {
-    const authorResult = byAuthorBOOKS(a, b)
+    const authorResult = compareByLastName(a.author.name, b.author.name)
     if (authorResult === 0) return byYearPublished(a, b)
     return authorResult
 }
-
-const byAuthorBOOKS = (a, b) => compareByLastName(a.author, b.author)
 
 const byYearPublished = (a, b) => {
     if (a.published < b.published) {
