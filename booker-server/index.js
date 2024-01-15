@@ -147,7 +147,7 @@ const resolvers = {
                 if (!foundAuthor) {
                     const author = new Author({ name: args.author })
                     await author.save()
-                    const book = new Book({ args, author })
+                    const book = new Book({ ...args, author })
                     await book.save()
                     return book
                 }

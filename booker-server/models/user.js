@@ -20,11 +20,4 @@ const schema = new mongoose.Schema({
 
 schema.plugin(uniqueValidator)
 
-/* userSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    // the passwordHash should not be revealed
-    delete returnedObject.passwordHash
-  }
-}) */
-
 module.exports = mongoose.model("User", schema)
