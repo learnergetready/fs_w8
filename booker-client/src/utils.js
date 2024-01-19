@@ -1,14 +1,17 @@
+export const alphabetically = (a, b) => {
+    if (a < b) {
+        return -1
+    } else if (a > b) {
+        return 1
+    }
+    return 0
+}
+
 const compareByLastName = (nameA, nameB) => {
     const lastName = (names) => names.split(" ").at(-1)
     const lastA = lastName(nameA)
     const lastB = lastName(nameB)
-
-    if (lastA < lastB) {
-        return -1
-    } else if (lastA > lastB) {
-        return 1
-    }
-    return 0
+    return alphabetically(lastA, lastB)
 }
 //author-table
 export const byAuthor = (a, b) => compareByLastName(a.name, b.name)
