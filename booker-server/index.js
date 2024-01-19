@@ -125,10 +125,10 @@ const resolvers = {
     Author: {
         bookCount: async (root) => {
             const authorWhoWrote = await Author.findOne({ name: root.name })
-            const booksCount = await Book.find({
+            const bookCount = await Book.find({
                 author: authorWhoWrote._id,
             }).countDocuments()
-            return booksCount
+            return bookCount
         },
     },
     Book: {
@@ -147,13 +147,19 @@ const resolvers = {
                 if (!foundAuthor) {
                     const author = new Author({ name: args.author })
                     await author.save()
-                    const book = new Book({ ...args, author })
+                    const book = new Book({
+                        ...args,
+                        author,
+                    })
                     await book.save()
-                    return book
+                    return book.populate("author")
                 }
-                const book = new Book({ ...args, author: foundAuthor })
+                const book = new Book({
+                    ...args,
+                    author: foundAuthor,
+                })
                 await book.save()
-                return book
+                return book.populate("author")
             } catch (error) {
                 handleMutationError(error)
             }
