@@ -1,17 +1,15 @@
 import { useQuery } from "@apollo/client"
-import { ALL_BOOKS_WITH_FILTERS, ME } from "../queries"
+import { ALL_BOOKS, ME } from "../queries"
 import { byAuthorbyYear } from "../utils"
 
 const Recommend = () => {
     const fetchedUser = useQuery(ME)
-    const { data, loading } = useQuery(ALL_BOOKS_WITH_FILTERS, {
+    const { data, loading } = useQuery(ALL_BOOKS, {
         skip: !fetchedUser.data,
         variables: { genre: fetchedUser.data?.me.favoriteGenre },
     })
 
-    if (fetchedUser.loading) return <div>loading... </div>
-
-    if (loading) return <div>loading... </div>
+    if (loading || fetchedUser.loading) return <div>loading... </div>
 
     return (
         <div>
