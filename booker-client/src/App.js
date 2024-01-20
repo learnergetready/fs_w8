@@ -5,6 +5,7 @@ import NewBook from "./components/NewBook"
 import { Routes, Route, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { useApolloClient } from "@apollo/client"
+import Recommend from "./components/Recommend"
 
 const App = () => {
     const navigate = useNavigate()
@@ -20,6 +21,7 @@ const App = () => {
     }
 
     const logout = () => {
+        navigate("/")
         setToken(null)
         localStorage.clear()
         client.resetStore()
@@ -31,12 +33,19 @@ const App = () => {
                 <button onClick={() => navigate("/authors")}>authors</button>
                 <button onClick={() => navigate("/books")}>books</button>
                 {token && (
-                    <button onClick={() => navigate("/add")}>add book</button>
+                    <>
+                        <button onClick={() => navigate("/add")}>
+                            add book
+                        </button>
+                        <button onClick={() => navigate("/recommend")}>
+                            recommend
+                        </button>
+                        <button onClick={logout}>log out</button>
+                    </>
                 )}
                 {!token && (
                     <button onClick={() => navigate("/login")}>login</button>
                 )}
-                {token && <button onClick={logout}>log out</button>}
             </div>
             {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
             <Routes>
@@ -52,6 +61,7 @@ const App = () => {
                 <Route path="/authors" element={<Authors />} />
                 <Route path="/books" element={<Books />} />
                 <Route path="/add" element={<NewBook />} />
+                <Route path="/recommend" element={<Recommend />} />
                 <Route
                     path="/login"
                     element={

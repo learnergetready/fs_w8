@@ -1,21 +1,17 @@
 import { useQuery } from "@apollo/client"
-import { ALL_BOOKS } from "../queries"
-import { alphabetically, byAuthorbyYear } from "../utils"
-import { useState } from "react"
+import { ALL_BOOKS_WITH_FILTERS, ALL_GENRES } from "../queries"
+import { byAuthorbyYear } from "../utils"
+import { useEffect } from "react"
 
 const Books = () => {
-    const [bookFilter, setBookFilter] = useState("all genres")
-    const result = useQuery(ALL_BOOKS)
-    const withBookFilter = (b) =>
-        bookFilter === "all genres" ? true : b.genres.includes(bookFilter)
+    const { loading, data, refetch } = useQuery(ALL_BOOKS_WITH_FILTERS)
+    const allGenres = useQuery(ALL_GENRES)
+    useEffect(() => {
+        allGenres.refetch()
+    }, [data, allGenres])
 
-    if (result.loading) return <div>loading... </div>
-    const allGenres = result.data.allBooks
-        .reduce((acc, curr) => {
-            curr.genres.map((g) => (acc.includes(g) ? null : acc.push(g)))
-            return acc
-        }, [])
-        .toSorted(alphabetically)
+    if (loading || allGenres.loading) return <div>loading... </div>
+
     return (
         <div>
             <h2>books</h2>
@@ -27,27 +23,21 @@ const Books = () => {
                         <th>author</th>
                         <th>published</th>
                     </tr>
-                    {result.data.allBooks
-                        .filter(withBookFilter)
-                        .toSorted(byAuthorbyYear)
-                        .map((a) => (
-                            <tr key={a.title}>
-                                <td>{a.title}</td>
-                                <td>{a.author.name}</td>
-                                <td>{a.published}</td>
-                            </tr>
-                        ))}
+                    {data.allBooks.toSorted(byAuthorbyYear).map((a) => (
+                        <tr key={a.title}>
+                            <td>{a.title}</td>
+                            <td>{a.author.name}</td>
+                            <td>{a.published}</td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
-            {allGenres.map((g) => (
-                <button key={g} onClick={() => setBookFilter(g)}>
+            {allGenres.data.allGenres.map((g) => (
+                <button key={g} onClick={() => refetch({ genre: g })}>
                     {g}
                 </button>
             ))}
-            <button
-                key="all genres"
-                onClick={() => setBookFilter("all genres")}
-            >
+            <button key="all genres" onClick={() => refetch({ genre: null })}>
                 all genres
             </button>
         </div>

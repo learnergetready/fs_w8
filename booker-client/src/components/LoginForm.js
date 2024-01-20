@@ -21,12 +21,12 @@ const LoginForm = ({ setError, setToken }) => {
             localStorage.setItem("booker-user-token", token)
             navigate("/")
         }
-    }, [result.data])
+    }, [result.data, navigate, setToken])
 
     const submit = async (event) => {
         event.preventDefault()
 
-        login({ variables: { username, password } })
+        await login({ variables: { username, password } })
     }
 
     return (
