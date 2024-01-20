@@ -1,31 +1,43 @@
 import { gql } from "@apollo/client"
 
+const AUTHOR_DETAILS = gql`
+    fragment AuthorDetails on Author {
+        name
+        id
+        born
+        bookCount
+    }
+`
+
 export const ALL_AUTHORS = gql`
     query {
         allAuthors {
-            name
-            id
-            born
-            bookCount
+            ...AuthorDetails
         }
     }
+    ${AUTHOR_DETAILS}
+`
+
+const BOOK_DETAILS = gql`
+    fragment BookDetails on Book {
+        title
+        published
+        id
+        author {
+            ...AuthorDetails
+        }
+        genres
+    }
+    ${AUTHOR_DETAILS}
 `
 
 export const ALL_BOOKS = gql`
     query AllBooks($author: String, $genre: String) {
         allBooks(author: $author, genre: $genre) {
-            title
-            published
-            id
-            author {
-                name
-                born
-                id
-                bookCount
-            }
-            genres
+            ...BookDetails
         }
     }
+    ${BOOK_DETAILS}
 `
 
 export const ALL_GENRES = gql`
@@ -57,29 +69,19 @@ export const ADD_BOOK = gql`
             author: $author
             genres: $genres
         ) {
-            title
-            published
-            author {
-                name
-                born
-                id
-                bookCount
-            }
-            id
-            genres
+            ...BookDetails
         }
     }
+    ${BOOK_DETAILS}
 `
 
 export const EDIT_BIRTHYEAR = gql`
     mutation editBirthYear($name: String!, $setBornTo: Int!) {
         editAuthor(name: $name, setBornTo: $setBornTo) {
-            name
-            id
-            born
-            bookCount
+            ...AuthorDetails
         }
     }
+    ${AUTHOR_DETAILS}
 `
 
 export const LOGIN = gql`
@@ -87,5 +89,20 @@ export const LOGIN = gql`
         login(username: $username, password: $password) {
             value
         }
+    }
+`
+
+export const BOOK_ADDED = gql`
+    subscription {
+        bookAdded {
+            ...BookDetails
+        }
+    }
+    ${BOOK_DETAILS}
+`
+
+export const GENRE_ADDED = gql`
+    subscription {
+        genreAdded
     }
 `
