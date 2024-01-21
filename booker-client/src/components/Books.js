@@ -1,14 +1,10 @@
 import { useQuery } from "@apollo/client"
 import { ALL_BOOKS, ALL_GENRES } from "../queries"
 import { byAuthorbyYear } from "../utils"
-import { useEffect } from "react"
 
 const Books = () => {
     const { loading, data, refetch } = useQuery(ALL_BOOKS)
     const allGenres = useQuery(ALL_GENRES)
-    useEffect(() => {
-        allGenres.refetch()
-    }, [data, allGenres])
 
     if (loading || allGenres.loading) return <div>loading... </div>
 

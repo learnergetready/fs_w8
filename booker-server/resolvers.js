@@ -54,7 +54,10 @@ const resolvers = {
         },
         allAuthors: async () => await Author.find({}),
         me: (root, args, context) => context.currentUser || null,
-        allGenres: async () => await Book.distinct("genres"),
+        allGenres: async () => {
+            console.log("allGenres-query at ", new Date())
+            return await Book.distinct("genres")
+        },
     },
     Author: {
         bookCount: async (root) => {

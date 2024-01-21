@@ -18,9 +18,16 @@ const EditBirthYear = () => {
     const handleSubmit = async (event) => {
         event.preventDefault()
         const { name, born } = event.target
-        await editBirthYear({
-            variables: { name: name.value, setBornTo: parseInt(born.value) },
-        })
+        try {
+            await editBirthYear({
+                variables: {
+                    name: name.value,
+                    setBornTo: parseInt(born.value),
+                },
+            })
+        } catch (error) {
+            notifyHere(error.message)
+        }
         name.value = ""
         born.value = ""
     }

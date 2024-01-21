@@ -6,20 +6,51 @@ import { Routes, Route, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { useApolloClient, useSubscription } from "@apollo/client"
 import Recommend from "./components/Recommend"
-import { BOOK_ADDED } from "./queries"
+import { ALL_BOOKS, ALL_GENRES, BOOK_ADDED } from "./queries"
+import { alphabetically } from "./utils"
 
 const App = () => {
     const navigate = useNavigate()
     const [token, setToken] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
+    const [errorColor, setErrorColor] = useState(null)
     const client = useApolloClient()
 
-    const notifyHere = (message) => {
+    const notifyHere = (message, color = "red") => {
         setErrorMessage(message)
+        setErrorColor(color)
         setTimeout(() => {
             setErrorMessage(null)
+            setErrorColor(null)
         }, 6000)
     }
+
+    useSubscription(BOOK_ADDED, {
+        onData: ({ data }) => {
+            const addedBook = data.data.bookAdded
+            notifyHere(
+                `A new book added: ${addedBook.title} by ${addedBook.author.name}`,
+                "green",
+            )
+            client.cache.updateQuery({ query: ALL_BOOKS }, ({ allBooks }) => {
+                return {
+                    allBooks: allBooks.concat(addedBook),
+                }
+            })
+            client.cache.updateQuery({ query: ALL_GENRES }, ({ allGenres }) => {
+                const newGenres = addedBook.genres.reduce(
+                    (acc, curr) =>
+                        allGenres.includes(curr) ? acc : acc.concat(curr),
+                    [],
+                )
+                return {
+                    allGenres: allGenres
+                        .concat(newGenres)
+                        .toSorted(alphabetically),
+                }
+            })
+        },
+    })
 
     const logout = () => {
         navigate("/")
@@ -27,14 +58,6 @@ const App = () => {
         localStorage.clear()
         client.resetStore()
     }
-
-    useSubscription(BOOK_ADDED, {
-        onData: ({ data }) => {
-            window.alert(
-                `A new book added: ${data.data.bookAdded.title} by ${data.data.bookAdded.author.name}`,
-            )
-        },
-    })
 
     return (
         <div>
@@ -56,7 +79,9 @@ const App = () => {
                     <button onClick={() => navigate("/login")}>login</button>
                 )}
             </div>
-            {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
+            {errorMessage && (
+                <div style={{ color: errorColor }}>{errorMessage}</div>
+            )}
             <Routes>
                 <Route
                     path="/"
