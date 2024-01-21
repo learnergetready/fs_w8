@@ -54,18 +54,11 @@ const resolvers = {
         },
         allAuthors: async () => await Author.find({}),
         me: (root, args, context) => context.currentUser || null,
-        allGenres: async () => {
-            console.log("allGenres-query at ", new Date())
-            return await Book.distinct("genres")
-        },
+        allGenres: async () => await Book.distinct("genres"),
     },
     Author: {
         bookCount: async (root) => {
-            const authorWhoWrote = await Author.findOne({ name: root.name })
-            const bookCount = await Book.find({
-                author: authorWhoWrote._id,
-            }).countDocuments()
-            return bookCount
+            return root.books.length
         },
     },
     Book: {
@@ -87,9 +80,11 @@ const resolvers = {
                     await author.save()
                     const book = new Book({
                         ...args,
-                        author,
+                        author: author._id,
                     })
                     await book.save()
+                    author.books = author.books.concat(book._id)
+                    await author.save()
                     const returnValue = book.populate("author")
                     pubsub.publish("BOOK_ADDED", { bookAdded: returnValue })
                     args.genres.forEach((g) => {
@@ -101,9 +96,11 @@ const resolvers = {
                 }
                 const book = new Book({
                     ...args,
-                    author: foundAuthor,
+                    author: foundAuthor._id,
                 })
                 await book.save()
+                foundAuthor.books = foundAuthor.books.concat(book._id)
+                await foundAuthor.save()
                 const returnValue = book.populate("author")
                 pubsub.publish("BOOK_ADDED", { bookAdded: returnValue })
                 args.genres.forEach((g) => {

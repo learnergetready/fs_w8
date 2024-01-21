@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react"
-import { useMutation, useQuery } from "@apollo/client"
+import { useState } from "react"
+import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import { ALL_AUTHORS, EDIT_BIRTHYEAR } from "../../queries"
 import { byAuthor } from "../../utils"
 
 const EditBirthYear = () => {
     const [errorMessage, setErrorMessage] = useState(null)
+    const client = useApolloClient()
     const notifyHere = (message) => {
         setErrorMessage(message)
         setTimeout(() => {
@@ -12,8 +13,25 @@ const EditBirthYear = () => {
         }, 6000)
     }
     const resultofAuthorQuery = useQuery(ALL_AUTHORS)
-    const [editBirthYear, result] = useMutation(EDIT_BIRTHYEAR, {
-        refetchQueries: [{ query: ALL_AUTHORS }],
+    const [editBirthYear] = useMutation(EDIT_BIRTHYEAR, {
+        onCompleted: ({ editAuthor }) => {
+            client.cache.updateQuery(
+                { query: ALL_AUTHORS },
+                ({ allAuthors }) => {
+                    return {
+                        allAuthors: allAuthors.map((a) =>
+                            a.id === editAuthor.id ? editAuthor : a,
+                        ),
+                    }
+                },
+            )
+        },
+        onError: (error) => {
+            const messages = error.graphQLErrors
+                .map((e) => e.message)
+                .join("\n")
+            notifyHere(messages)
+        },
     })
     const handleSubmit = async (event) => {
         event.preventDefault()
@@ -31,11 +49,6 @@ const EditBirthYear = () => {
         name.value = ""
         born.value = ""
     }
-    useEffect(() => {
-        if (result.data && result.data.editAuthor === null) {
-            notifyHere("The author you tried to edit was not found.")
-        }
-    }, [result.data])
 
     if (resultofAuthorQuery.loading) {
         return <div>loading authors...</div>

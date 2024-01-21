@@ -96,6 +96,19 @@ const initializeBooks = async (booksWithAuthorIds) => {
     await Promise.all(promiseArray)
 }
 
+const addBooksToAuthors = async (booksWithAuthorIds) => {
+    const authors = await Author.find({})
+    const promiseArray = authors.map(async (a) => {
+        a.books = booksWithAuthorIds.reduce((acc, curr) => {
+            return JSON.stringify(curr.author) === JSON.stringify(a._id)
+                ? acc.concat(curr._id)
+                : acc
+        }, [])
+        return a.save()
+    })
+    await Promise.all(promiseArray)
+}
+
 if (process.argv.length < 3) {
     console.log("give password as argument")
     process.exit(1)
@@ -112,6 +125,8 @@ const initialization = async () => {
     await initializeAuthors()
     const booksWithAuthorIds = await getBooksWithAuthorIds()
     await initializeBooks(booksWithAuthorIds)
+    const booksFromDB = await Book.find({})
+    await addBooksToAuthors(booksFromDB)
     mongoose.connection.close()
 }
 initialization()
